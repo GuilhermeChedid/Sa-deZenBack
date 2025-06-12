@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - SaúdeZen</title>
+  <link rel="stylesheet" href="css/login.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="container">
+    <section class="image">
+      <img src="imagens/roboLogo.jpg" alt="Robô médico" />
+    </section>
+
+    <section class="form-section">
+      <div class="form-box">
+        <h1>Entre em sua conta</h1>
+        <form action="/login" method="POST">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="Digite seu email" />
+
+          <label for="password">Senha</label>
+          <input type="password" id="password" name="senha" required placeholder="Digite sua senha" />
+
+          <button type="submit" class="submit-btn">Entrar</button>
+
+          <button type="button" class="google-btn" onclick="location.href='/auth/google'">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
+            Entrar com Google
+          </button>
+
+          <p class="login-text">Não possui uma conta? <a href="cadastro.html">Faça Cadastro</a></p>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
