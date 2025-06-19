@@ -7,6 +7,19 @@
   <link rel="stylesheet" href="css/cadastro.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  
+  if (params.get('erro') === 'email') {
+    alert('Usuário já existe.');
+  }
+
+  if (params.get('erro') === 'senha') {
+    alert('A senha deve ter no mínimo 8 caracteres e pelo menos uma letra.');
+  }
+</script>
+
 <body>
   <main class="container">
     
@@ -21,11 +34,6 @@
           <input type="password" id="password" name="senha" required placeholder="Digite uma senha" />
 
           <button type="submit" class="submit-btn">Cadastrar-se</button>
-
-          <button type="button" class="google-btn" onclick="location.href='/auth/google'">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
-            Continue com Google
-          </button>
 
           <p class="login-text">Já tem uma conta? <a href="login.html">Faça Login</a></p>
         </form>
