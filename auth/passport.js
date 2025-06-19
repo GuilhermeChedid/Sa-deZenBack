@@ -19,12 +19,10 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, senha, 
     return done(null, false, { message: 'Email ou senha incorretos.' });
   }
 
-  // Compara a senha fornecida com o hash armazenado
-  const isMatch = await bcrypt.compare(senha, user.senha);
-  if (!isMatch) {
-    console.log('Senha incorreta para o usuário:', email);
-    return done(null, false, { message: 'Email ou senha incorretos.' });
-  }
+  if (senha !== user.senha) {
+  console.log('Senha incorreta para o usuário:', email);
+  return done(null, false, { message: 'Email ou senha incorretos.' });
+}
 
   console.log('Login Local bem-sucedido para o usuário:', user.email, 'ID:', user.id);
   return done(null, user); // Autenticação bem-sucedida, passa o objeto user
