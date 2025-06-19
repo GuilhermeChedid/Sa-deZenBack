@@ -70,9 +70,8 @@ app.post('/register', async (req, res) => {
     return res.redirect('/cadastro?erro=senha');
   }
 
-  // Criptografar senha e salvar usuário
-  const senhaHash = await bcrypt.hash(senha, 10);
-  const novo = { id: usuarios.length + 1, email, senha: senhaHash };
+  // senha e salvar usuário
+  const novo = { id: usuarios.length + 1, email, senha: senha };
   usuarios.push(novo);
 
   console.log('Novo usuário cadastrado:', email);
