@@ -7,6 +7,14 @@
   <link rel="stylesheet" href="css/login.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('erro')) {
+    alert('Email ou senha incorretos.');
+  }
+</script>
+
 <body>
   <main class="container">
     <section class="image">
@@ -24,11 +32,6 @@
           <input type="password" id="password" name="senha" required placeholder="Digite sua senha" />
 
           <button type="submit" class="submit-btn">Entrar</button>
-
-          <button type="button" class="google-btn" onclick="location.href='/auth/google'">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
-            Entrar com Google
-          </button>
 
           <p class="login-text">Não possui uma conta? <a href="cadastro.html">Faça Cadastro</a></p>
         </form>
