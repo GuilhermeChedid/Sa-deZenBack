@@ -6,15 +6,42 @@
   <title>Login - SaúdeZen</title>
   <link rel="stylesheet" href="css/login.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    .mensagem {
+      font-size: 0.85rem;
+      color: red;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1rem 1.5rem;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 1rem;
+      z-index: 9999;
+      animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    .popup.sucesso {
+      border-left: 6px solid #2ecc71;
+      color: #2ecc71;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; top: 0; }
+      10% { opacity: 1; top: 20px; }
+      90% { opacity: 1; top: 20px; }
+      100% { opacity: 0; top: 0; }
+    }
+  </style>
 </head>
-
-<script>
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('erro')) {
-    alert('Email ou senha incorretos.');
-  }
-</script>
-
 <body>
   <main class="container">
     <section class="image">
@@ -24,19 +51,45 @@
     <section class="form-section">
       <div class="form-box">
         <h1>Entre em sua conta</h1>
+
         <form action="/login" method="POST">
           <label for="email">Email</label>
           <input type="email" id="email" name="email" required placeholder="Digite seu email" />
 
           <label for="password">Senha</label>
           <input type="password" id="password" name="senha" required placeholder="Digite sua senha" />
+          <div id="erro-login" class="mensagem"></div>
 
           <button type="submit" class="submit-btn">Entrar</button>
 
-          <p class="login-text">Não possui uma conta? <a href="cadastro.html">Faça Cadastro</a></p>
+          <p class="login-text">
+            Não possui uma conta? <a href="cadastro.html">Faça Cadastro</a>
+          </p>
         </form>
       </div>
     </section>
   </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('sucesso') === '1') {
+      mostrarPopup('✅ Cadastro realizado com sucesso!', 'sucesso');
+    }
+
+    if (params.has('erro')) {
+      document.getElementById('erro-login').textContent = 'Email ou senha incorretos.';
+    }
+
+    function mostrarPopup(mensagem, tipo) {
+      const popup = document.createElement('div');
+      popup.className = `popup ${tipo}`;
+      popup.textContent = mensagem;
+      document.body.appendChild(popup);
+      setTimeout(() => {
+        popup.remove();
+      }, 4000);
+    }
+  </script>
 </body>
 </html>
