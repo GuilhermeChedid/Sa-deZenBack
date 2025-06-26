@@ -1,44 +1,21 @@
 const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const bcrypt = require('bcrypt');
 const path = require('path');
-const usuarios = require('./usuarios');
-require('dotenv').config();
-require('./auth/passport');
-
-console.log('--- server.js iniciado ---');
-console.log('Caminho do arquivo sendo executado:', __filename);
-console.log('Diretório de trabalho atual:', process.cwd());
-
+const admin = require('firebase-admin');
 const app = express();
 
-// Servir arquivos estáticos (HTML, CSS, imagens, etc.)
-app.use(express.static(path.join(__dirname, 'public')));
+const credencial = require('./credencials.json');
+admin.initializeApp({
+  credential: admin.credential.cert(credencial)
+});
+const db = admin.firestore();
 
-// Middleware para JSON e formulários
+console.log('--- server.js iniciado ---');
+console.log('Número recebido no cadastro:', numero);
+
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Sessão
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Middleware para verificar se está autenticado
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect('/login');
-}
-
-// Rotas de páginas
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'inicial.html'));
 });
@@ -51,39 +28,111 @@ app.get('/cadastro', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'cadastro.html'));
 });
 
-app.get('/ativar', isLoggedIn, (req, res) => {
+app.get('/ativar', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'ativar.html'));
 });
 
-// Cadastro
-app.post('/register', async (req, res) => {
-  const { email, senha } = req.body;
+// Palavras proibidas para nomes
+const palavrasProibidas = [
+  "viado", "gay", "bicha", "boiola", "bichona", "sapatão", "traveco",
+  "puta", "piranha", "prostituta", "vadia", "vagabunda", "corna",
+  "corno", "otario", "idiota", "burro", "asno", "panaca", "imbecil",
+  "babaca", "lerdo", "lixo", "nojento", "porco", "animal", "anta", "tapado",
+  "desgraçado", "desgraça", "maldito", "maldita", "demônio", "capeta",
+  "inferno", "caralho", "merda", "porra", "bosta", "foda", "cacete", "pqp",
+  "filho da puta", "fdp", "arrombado", "escroto", "escrota", "retardado",
+  "retardada", "mongoloide", "cretino", "macaco", "preto", "neguinho",
+  "branquelo", "racista", "nazi", "nazista", "hitler", "fascista",
+  "terrorista", "estuprador", "pedófilo", "pedofilia", "estuprador",
+  "estupradora", "buceta", "xota", "xavasca", "cu", "anus", "anal",
+  "rola", "pau", "pinto", "penis", "pênis", "vagina", "testiculo", "saco",
+  "sexo", "transa", "gozar", "gozo", "ejacular", "ejaculação", "orgasmo",
+  "punheta", "punheteiro", "punheteira", "masturbação", "masturbar",
+  "enfiar", "chupar", "mamando", "mamando rola", "comer", "comedor",
+  "cuzão", "babaca", "otária", "imbecil", "babaca", "idiota", "burra",
+  "burrice", "lixo humano", "pretinho", "branquinho", "comunista", "lula",
+  "bolsonaro", "PT", "xandão", "gostoso", "gostosa", "gostozinho", "gostozinha",
+  "gostosinha", "gostosinho"
+];
 
-  // Verificar se já existe o usuário
-  if (usuarios.find(u => u.email === email)) {
-    return res.redirect('/cadastro?erro=email');
+function contemPalavraProibida(nome) {
+  const nomeLower = nome.toLowerCase();
+  return palavrasProibidas.some(palavra => nomeLower.includes(palavra));
+}
+
+function validarTelefone(numero) {
+  const numeroLimpo = String(numero).trim();
+  const regex = /^(11|12|13|14|15|16|17|18|19|21|22|24|27|28|31|32|33|34|35|37|38|41|42|43|44|45|46|47|48|49|51|53|54|55|61|62|63|64|65|66|67|71|73|74|75|77|79|81|82|83|84|85|86|87|88|89|91|92|93|94|95|96|97|98|99)9\d{8}$/;
+  return regex.test(numeroLimpo);
+}
+
+// Cadastro com validações completas
+app.post('/register', async (req, res) => {
+  const { nome, numero, email, senha } = req.body;
+
+  if (!nome || nome.trim().split(' ').length < 2 || contemPalavraProibida(nome)) {
+    return res.redirect('/cadastro?erro=nome');
   }
 
-  // Validação da senha: mínimo 8 caracteres e pelo menos uma letra
+  if (!validarTelefone(numero)) {
+    return res.redirect('/cadastro?erro=numero');
+  }
+
   const senhaValida = senha.length >= 8 && /[a-zA-Z]/.test(senha);
   if (!senhaValida) {
     return res.redirect('/cadastro?erro=senha');
   }
 
-  // senha e salvar usuário
-  const novo = { id: usuarios.length + 1, email, senha: senha };
-  usuarios.push(novo);
+  try {
+    const emailSnapshot = await db.collection('users').where('email', '==', email).get();
+    if (!emailSnapshot.empty) {
+      return res.redirect('/cadastro?erro=email');
+    }
 
-  console.log('Novo usuário cadastrado:', email);
+    const numeroSnapshot = await db.collection('users').where('numero', '==', numero).get();
+    if (!numeroSnapshot.empty) {
+      return res.redirect('/cadastro?erro=numero');
+    }
 
-  res.redirect('/login');
+    await db.collection('users').add({
+      nome: nome,
+      numero: numero,
+      email: email,
+      senha: senha,
+      criadoEm: new Date()
+    });
+
+    console.log('✅ Usuário cadastrado:', email);
+    res.redirect('/login?sucesso=1');
+  } catch (error) {
+    console.error('❌ Erro no cadastro:', error);
+    res.redirect('/cadastro?erro=server');
+  }
 });
 
-// Login tradicional
-app.post('/login', passport.authenticate('local', {
-  successRedirect: '/ativar',
-  failureRedirect: '/login?erro=1'
-}));
+// Login com erro/sucesso
+app.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
 
-// Iniciar servidor na porta 8080
-app.listen(8080, () => console.log('Servidor rodando em http://localhost:8080'));
+  try {
+    const snapshot = await db.collection('users')
+      .where('email', '==', email)
+      .where('senha', '==', senha)
+      .get();
+
+    if (snapshot.empty) {
+      console.log('❌ Falha no login:', email);
+      return res.redirect('/login?erro=1');
+    }
+
+    console.log('✅ Login bem-sucedido:', email);
+    res.redirect('/ativar');
+  } catch (error) {
+    console.error('❌ Erro no login:', error);
+    res.send('Erro no login');
+  }
+});
+
+app.listen(8080, () => {
+  console.log('Servidor rodando em http://localhost:8080');
+});
