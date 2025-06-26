@@ -6,32 +6,38 @@
   <title>Cadastro - SaúdeZen</title>
   <link rel="stylesheet" href="css/cadastro.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    .mensagem {
+      font-size: 0.85rem;
+      color: red;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
-
-<script>
-  const params = new URLSearchParams(window.location.search);
-  
-  if (params.get('erro') === 'email') {
-    alert('Usuário já existe.');
-  }
-
-  if (params.get('erro') === 'senha') {
-    alert('A senha deve ter no mínimo 8 caracteres e pelo menos uma letra.');
-  }
-</script>
-
 <body>
   <main class="container">
-    
     <section class="form-section">
       <div class="form-box">
         <h1>Crie sua conta</h1>
+
         <form action="/register" method="POST">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" name="nome" required placeholder="Nome e sobrenome" />
+          <div id="erro-nome" class="mensagem"></div>
+
+          <label for="numero">Número de telefone</label>
+          <input type="tel" id="numero" name="numero" required placeholder="Ex: 61912345678" />
+          <div id="erro-numero" class="mensagem"></div>
+
           <label for="email">Email</label>
           <input type="email" id="email" name="email" required placeholder="Digite seu email" />
+          <div id="erro-email" class="mensagem"></div>
 
-          <label for="password">Senha</label>
-          <input type="password" id="password" name="senha" required placeholder="Digite uma senha" />
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" name="senha" required placeholder="Mínimo 8 caracteres e uma letra" />
+          <div id="erro-senha" class="mensagem"></div>
 
           <button type="submit" class="submit-btn">Cadastrar-se</button>
 
@@ -43,7 +49,28 @@
     <section class="image">
       <img src="imagens/roboLogo.jpg" alt="Robô médico" />
     </section>
-
   </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has('erro')) {
+      const tipo = params.get('erro');
+      const mensagens = {
+        nome: 'Nome inválido. Use nome e sobrenome, sem apelidos ou termos ofensivos.',
+        email: 'Email já cadastrado.',
+        senha: 'A senha deve ter no mínimo 8 caracteres e pelo menos uma letra.',
+        numero: 'Número inválido ou já cadastrado. Use DDD + 9 + 8 dígitos.',
+        server: '❌ Erro interno. Tente novamente.'
+      };
+
+      const divErro = document.getElementById(`erro-${tipo}`);
+      if (divErro) divErro.textContent = mensagens[tipo];
+    }
+
+    if (params.get('sucesso') === '1') {
+      alert('Cadastro realizado com sucesso!');
+    }
+  </script>
 </body>
 </html>
